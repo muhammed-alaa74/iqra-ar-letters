@@ -48,6 +48,7 @@ Level progression happens **automatically** after a set number of fully-correct 
 
 ```
 .
+|__ notebooks
 ├── app.py                      # Full application code
 ├── requirements.txt            # Python dependencies
 ├── arabic_letters_model.keras  # Model file (added manually, not included)
