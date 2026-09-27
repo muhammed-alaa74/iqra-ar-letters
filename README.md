@@ -1,6 +1,6 @@
 # iqra-ar-letters
 
-🔗 **جرّب التطبيق مباشرة:** [تعلم كتابة الحروف العربية · Streamlit](https://iqra-ar-letters.streamlit.app/)
+🔗 **Live demo:** [تعلم كتابة الحروف العربية · Streamlit](https://iqra-ar-letters.streamlit.app/)
 
 An interactive Streamlit app that helps kids learn to write Arabic letters step by step: the child sees a simple illustration and a word with one or more missing letters, draws the missing letter(s) by hand on a canvas, and gets instant feedback from a handwriting-classification model trained on Arabic letters.
 
@@ -38,4 +38,80 @@ Level progression happens automatically after a set number of fully-correct word
 - Graceful handling when the model file is missing — the app never crashes.
 - One-click full game reset from the UI.
 
-## Project structure
+## Project Structure
+
+```
+.
+├── app.py                      # Full application code
+├── requirements.txt            # Python dependencies
+├── arabic_letters_model.keras  # Model file (added manually, not included)
+└── README.md
+```
+
+### Key Parts of `app.py`
+
+| Component | Purpose |
+|---|---|
+| `WORD_BANK` | Word list grouped by level |
+| `WORD_ICONS` | Maps each word to its illustrative SVG |
+| `load_model()` | Loads the Keras model with caching (`cache_resource`) |
+| `new_round()` | Picks a random word and selects the missing letters |
+| `predict_letter()` | Preprocesses the drawn image and runs it through the model |
+| `register_result()` | Updates score and handles level-progression logic |
+| `render_*()` | UI rendering functions (header, hint image, word, canvases, feedback) |
+
+## Model Requirements
+
+The app expects a Keras model file named `arabic_letters_model.keras` with the following spec:
+
+- **Input:** grayscale image, 32×32×1, values normalized between 0 and 1, white strokes on a black background.
+- **Output:** a softmax probability distribution over 28 classes, in the same order as the `LETTERS` array in `app.py`:
+
+```
+ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه و ي
+```
+
+If your model was trained with a different class order, update the `LETTERS` array to match your training order exactly — otherwise predictions will be wrong even when the drawn letter is correct.
+
+## Running Locally
+
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Place `arabic_letters_model.keras` in the same folder as `app.py`.
+3. Run the app:
+   ```bash
+   streamlit run app.py
+   ```
+4. Open the URL printed in the terminal (usually `http://localhost:8501`).
+
+## Deployment
+
+The project runs out of the box on Streamlit Community Cloud or any Streamlit-compatible platform (Render, Hugging Face Spaces, etc.):
+
+1. Push `app.py`, `requirements.txt`, and `arabic_letters_model.keras` to the same repository.
+2. Make sure the model file size fits your platform's limits.
+3. Connect the repository to the platform and deploy — no extra configuration needed.
+
+**Live demo:** https://iqra-ar-letters.streamlit.app/
+
+## Customization
+
+- **Add new words:** add the word to `WORD_BANK` under the right level, and add a matching SVG in `WORD_ICONS` (same style as the rest: `#123B4F` strokes, `#D9A441` accents).
+- **Change the words-to-advance threshold:** edit `WORDS_TO_ADVANCE`.
+- **Add a 4th level:** extend `WORD_BANK`, `LEVEL_LABELS`, and `MAX_LEVEL`, and add longer words.
+- **Change the visual identity:** all colors and fonts are defined centrally in `inject_css()`.
+
+## Troubleshooting
+
+| Issue | Likely Cause | Fix |
+|---|---|---|
+| `File does not exist: app.py` | Running the command from the wrong folder | `cd` into the project folder before `streamlit run` |
+| `ModuleNotFoundError` | Missing dependency | `pip install -r requirements.txt` |
+| `image_data was not requested` | Newer version of `streamlit-drawable-canvas` | Make sure `return_image_data=True` is passed to `st_canvas` |
+| All answers come back wrong | Canvas stroke/background colors don't match the model's training data, or `LETTERS` order doesn't match the model's class order | Make sure strokes are white on a black background, and that `LETTERS` matches your training order |
+
+## License
+
+This project is free to use and modify within your own work.
